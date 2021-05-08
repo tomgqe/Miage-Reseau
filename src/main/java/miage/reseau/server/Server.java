@@ -3,6 +3,7 @@ package miage.reseau.server;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Properties;
@@ -25,13 +26,13 @@ public class Server {
 
 	// Correspondance entre domaines et dossiers
 	private HashMap<String, String> domainDirectory;
-
+	
 	// Une intsance de Server est lancé à chaque lancement de l'application
 	public static void main(String args[]) {
 		try {
 			new Server().start();
 		} catch (Exception e) {
-			LOG.severe("Config Error");
+			LOG.severe("Erreur dans la configuration du serveur");
 		}
 	}
 
@@ -39,7 +40,7 @@ public class Server {
 	public void start() throws IOException {
 		getProperties();
 		ServerSocket s = new ServerSocket(port);
-		System.out.println("Server listening on port " + port + " (press CTRL-C to quit)");
+		System.out.println("Serveur actif sur le port " + port + " (CTRL-C pour quitter)");
 		// On limite le nombre de connexions client en fonction de la config
 		ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
 		while (true) {
@@ -53,6 +54,8 @@ public class Server {
 		Properties properties = new Properties();
 		properties.load(new FileInputStream(file));
 		port = Integer.parseInt(properties.getProperty("port"));
+		int nbThreadTmp = Integer.parseInt(properties.getProperty("nbThreads"));
+		nbThreads = nbThreadTmp > 0 ? nbThreadTmp : 3;
 		sourceDirectoryPath = properties.getProperty("directory");
 		domainDirectory = new HashMap<>();
 		String[] domains = properties.getProperty("domains").split(",");

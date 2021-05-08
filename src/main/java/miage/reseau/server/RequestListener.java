@@ -23,7 +23,7 @@ public class RequestListener implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Request req = new Request(clientSocket.getInputStream(), this.server);
+			Request req = new Request(clientSocket, this.server);
 			Response res = new Response(req);
 			res.write(clientSocket.getOutputStream());
 			clientSocket.close();

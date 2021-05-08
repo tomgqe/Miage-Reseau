@@ -29,35 +29,49 @@ public enum ContentType {
 
 	@Override
 	public String toString() {
+		String res = "Content-Type: ";
 		switch (this) {
 			case CSS:
-				return "Content-Type: text/css";
+				res+= "text/css";
+				break;
 			case GIF:
-				return "Content-Type: image/gif";
+				res+= "image/gif";
+				break;
 			case HTM:
 			case HTML:
-				return "Content-Type: text/html";
+				res+= "text/html";
+				break;
 			case ICO:
-				return "Content-Type: image/gif";
+				res+= "image/gif";
+				break;
 			case JPG:
 			case JPEG:
-				return "Content-Type: image/jpeg";
+				res+= "image/jpeg";
+				break;
 			case PNG:
-				return "Content-Type: image/png";
+				res+= "image/png";
+				break;
 			case TXT:
-				return "Content-type: text/plain";
+				res+= "text/plain";
+				break;
 			case XML:
-				return "Content-type: text/xml";
+				res+= "text/xml";
+				break;
 			case JS:
-				return "text/javascript";
+				res+= "text/javascript";
+				break;
 			case TTF:
-				return "font/ttf";
+				res+= "font/ttf";
+				break;
 			case WOFF:
-				return "font/woff";
+				res+= "font/woff";
+				break;
 			case WOFF2:
-				return "font/woff2";
+				res+= "font/woff2";
+				break;
 			default:
 				return null;
 		}
+		return res;
 	}
 }

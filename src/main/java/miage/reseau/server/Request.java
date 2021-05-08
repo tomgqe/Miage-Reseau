@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,15 +28,17 @@ public class Request {
 
 	// Parcours du stream entrant, parsing de la premiere ligne,
 	// recupération du host et ajout des autres headers dans headers
-	public Request(InputStream is, Server server) throws IOException {
+	public Request(Socket clientSocket, Server server) throws IOException {
+		InputStream is = clientSocket.getInputStream();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		String line = reader.readLine();
+		LOG.info("Ip appelant : " + clientSocket.getInetAddress().getHostAddress()+ "\n      Requête : " + line);
 		parseRequestFirstLine(line);
 
 		while (!line.equals("")) {
-			if (line.contains("Host:")) {
-				host = line.split(":")[1];
-				LOG.info(line);
+			if (line.contains("Host: ")) {
+				host = line.split(": ")[1];
+				//LOG.info(line);
 			}
 			line = reader.readLine();
 			parseRequest(line);
@@ -52,7 +55,6 @@ public class Request {
 
 	// Parsing de la premeiere ligne de la requete
 	private void parseRequestFirstLine(String str) {
-		LOG.info(str);
 		String[] requestSplit = str.split("\\s+");
 		method = requestSplit[0];
 		uri = requestSplit[1];
@@ -61,7 +63,13 @@ public class Request {
 
 	private void parseRequest(String str) {
 		// LOG.info(str);
-		headers.put(str.split(":")[0], str.split(":")[1]);
+		String[] splitedStr = str.split(": ");
+		try {
+			headers.put(splitedStr[0], splitedStr[1]);
+		} catch (Exception e) {
+			headers.put(splitedStr[0], "");
+
+		}
 	}
 
 	public HashMap<String, String> getHeaders() {

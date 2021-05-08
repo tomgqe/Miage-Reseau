@@ -109,6 +109,8 @@ public class Response {
 	private void setContentType(String uri, List<String> list) {
 		try {
 			String ext = uri.substring(uri.indexOf(".") + 1);
+			// L'Enum Content-Type est en majuscule pour eviter les probleme de casse donc
+			// on passe l'extension en majuscule aussi
 			list.add(ContentType.valueOf(ext.toUpperCase()).toString());
 		} catch (Exception e) {
 			LOG.severe("ContentType non géré : " + e);

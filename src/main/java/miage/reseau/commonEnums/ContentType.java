@@ -16,10 +16,10 @@ public enum ContentType {
 	PNG("PNG"),
 	TXT("TXT"),
 	XML("XML"),
-    JS("js"),
-    TTF("ttf"),
-    WOFF("woff"),
-    WOFF2("woff2");
+    JS("JS"),
+    TTF("TTF"),
+    WOFF("WOFF"),
+    WOFF2("WOFF2");
 
 	private final String extension;
 

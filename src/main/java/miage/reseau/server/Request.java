@@ -31,17 +31,18 @@ public class Request {
 	public Request(Socket clientSocket, Server server) throws IOException {
 		InputStream is = clientSocket.getInputStream();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+		String firstLine = reader.readLine();
+		parseRequestFirstLine(firstLine);
 		String line = reader.readLine();
-		LOG.info("Ip appelant : " + clientSocket.getInetAddress().getHostAddress()+ "\n      Requête : " + line);
-		parseRequestFirstLine(line);
 
 		while (!line.equals("")) {
+			parseRequest(line);
 			if (line.contains("Host: ")) {
 				host = line.split(": ")[1];
-				//LOG.info(line);
+				LOG.info("Ip appelant : " + clientSocket.getInetAddress().getHostAddress() + "\n      Requête : "
+						+ firstLine + "\n      " + line);
 			}
 			line = reader.readLine();
-			parseRequest(line);
 		}
 		String directory = server.getSourceDirectoryPath() + '/' + server.getDomainDirectory(host);
 		// Redirection sur index.html en cas d'absence de fichier cible
@@ -63,17 +64,17 @@ public class Request {
 
 	private void parseRequest(String str) {
 		// LOG.info(str);
-		String[] splitedStr = str.split(": ");
 		try {
+			String[] splitedStr = str.split(": ", 2);
 			headers.put(splitedStr[0], splitedStr[1]);
 		} catch (Exception e) {
-			headers.put(splitedStr[0], "");
+			headers.put(str, "");
 
 		}
 	}
 
-	public HashMap<String, String> getHeaders() {
-		return headers;
+	public String getHeaders(String key) {
+		return headers.get(key);
 	}
 
 	public String getMethod() {

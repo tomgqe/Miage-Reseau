@@ -9,9 +9,9 @@ Les fonctionnalité présentes sont :
 - Gestion multisite
 - Gestion de plusieurs connexions en parallèle (avec paramétrage du nombre maximum)
 - Affichage de log sur stdout : ip de l'appelant + requête
+- Protection de ressource par une authentification basique
 
 ### Fonctionnalité prévues
-- Protection de ressource par une authentification basique
 - Gestion du listing des répertoires (paramétrage dans la config).
 
 ## Généralités

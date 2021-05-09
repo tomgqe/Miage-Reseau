@@ -6,8 +6,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 import miage.reseau.commonEnums.ContentType;
@@ -32,14 +36,18 @@ public class Response {
 		switch (req.getMethod()) {
 		case "GET":
 			// On recherche le fichier cible de la requete
-			// si trouvé on le retourne avec les headers adéquats
-			// sinon on retourne un Statut 404
+			// si trouvé et authorisé on le retourne avec les headers adéquats
+			// si pas authorisé 403 Forbidden
+			// si non trouvé on retourne un Statut 404
+			// si exception : 400 bad request
 			try {
 				File file = new File(req.getUri());
 				if (file.exists()) {
-					fillHeaders(Status._200);
-					setContentType(req.getUri(), headers);
-					fillResponse(getBytes(file));
+					if (checkAuthorization(req)) {
+						fillHeaders(Status._200);
+						setContentType(req.getUri(), headers);
+						fillResponse(getBytes(file));
+					}
 				} else {
 					LOG.info("File not found:" + req.getUri());
 					fillHeaders(Status._404);
@@ -53,10 +61,75 @@ public class Response {
 
 			break;
 		default:
-			// Statut : not yet implemented
+			// Statut : not yet implemented si la methode n'est pas reconnue
 			fillHeaders(Status._501);
 			fillResponse(Status._501.toString());
 		}
+	}
+
+	// parcours tous les dossiers de l'uri à la recherche de .htpasswd
+	// si trouvé on verifie l'authorization
+	private boolean checkAuthorization(Request req) {
+		String[] splittedUri = req.getUri().split("/");
+		String testedUri = "";
+		for (int i = 1; i < splittedUri.length - 1; i++) {
+			File htpasswd = new File(testedUri + "/" + splittedUri[i] + "/.htpasswd");
+			testedUri = testedUri + "/" + splittedUri[i];
+			if (htpasswd.exists()) {
+				if (!verifyAuthorization(htpasswd, req)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean verifyAuthorization(File htpasswd, Request req) {
+		String header = req.getHeaders("Authorization");
+		// si header authorization non renseigné on lève statut 401
+		if (header == null) {
+			LOG.info("Unauthorized access to" + req.getUri());
+			fillHeaders(Status._401);
+			fillResponse(Status._401.toString());
+			return false;
+		} else {
+			// on split sur " " pour ne pas prendre le type d'authorization
+			String id = header.split(" ").length > 0 ? header.split(" ")[1] : header;
+			// on décode l'identifiant du client pour avoir le couple id/mdp
+			id = new String(Base64.getDecoder().decode(id));
+			try {
+				// On parcourt le fichier htpasswd
+				Scanner sc = new Scanner(htpasswd);
+				boolean authorised = false;
+				while (sc.hasNextLine()) {
+					String line = sc.nextLine();
+					// si on trouve une correspondance avec l'identifiant client on hash en md5 le
+					// mdp client et on compare les mdp
+					if (line.split(":")[0].equals(id.split(":")[0])) {
+						MessageDigest md = MessageDigest.getInstance("MD5");
+						md.update(id.split(":")[1].getBytes());
+						byte[] digest = md.digest();
+						String pwdMd5 = new BigInteger(1, digest).toString(16);
+						if (line.split(":")[1].equals(pwdMd5)) {
+							authorised = true;
+						}
+					}
+				}
+				sc.close();
+				// si pas d'authorization, on ne va pas plus loin et on leve le statut 403
+				if (!authorised) {
+					LOG.info("Forbidden acces to" + req.getUri());
+					fillHeaders(Status._403);
+					fillResponse(Status._403.toString());
+					return false;
+				}
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				return false;
+			}
+		}
+		return true;
+
 	}
 
 	// Conversion du fichier en byte
@@ -90,6 +163,7 @@ public class Response {
 	private void fillResponse(byte[] response) {
 		body = response;
 	}
+
 	// Ecriture de la reponse dans le stream de sortie
 	// Mis au bon format en ajoutant des retours à ligne
 	public void write(OutputStream os) throws IOException {
@@ -105,7 +179,8 @@ public class Response {
 		output.flush();
 	}
 
-	// Recupère l'extension du fichier et appel à l'enum Status pour spécifier le content-type
+	// Recupère l'extension du fichier et appel à l'enum Status pour spécifier le
+	// content-type
 	private void setContentType(String uri, List<String> list) {
 		try {
 			String ext = uri.substring(uri.indexOf(".") + 1);

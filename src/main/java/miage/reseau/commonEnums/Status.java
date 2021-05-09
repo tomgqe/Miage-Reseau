@@ -36,7 +36,7 @@ public enum Status {
 	_415("415 Unsupported Media Type"), 
 	_416("416 Requested range not satisfiable"), 
 	_417("417 Expectation Failed"),
-	_418("418 I'm a teapot"),  //The most important Status !
+	_418("418 I'm a teapot"),  // la théière à ne pas manquer
 	_500("500 Internal Server Error"), 
 	_501("501 Not Implemented"), 
 	_502("502 Bad Gateway"), 

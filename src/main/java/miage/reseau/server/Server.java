@@ -11,6 +11,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+import javax.swing.text.StyledEditorKit.BoldAction;
+
 public class Server {
 
 	private static Logger LOG = Logger.getLogger(Server.class.getName());
@@ -27,6 +29,9 @@ public class Server {
 	// Correspondance entre domaines et dossiers
 	private HashMap<String, String> domainDirectory;
 	
+	//  Listing des répertoires (si false pas de listing)
+	private boolean listingDirectory;
+
 	// Une intsance de Server est lancé à chaque lancement de l'application
 	public static void main(String args[]) {
 		try {
@@ -53,8 +58,8 @@ public class Server {
 		File file = new File("config.properties");
 		Properties properties = new Properties();
 		properties.load(new FileInputStream(file));
-		port = Integer.parseInt(properties.getProperty("port"));
-		int nbThreadTmp = Integer.parseInt(properties.getProperty("nbThreads"));
+		port = Integer.parseInt(properties.getProperty("port", "80"));
+		int nbThreadTmp = Integer.parseInt(properties.getProperty("nbThreads", "3"));
 		nbThreads = nbThreadTmp > 0 ? nbThreadTmp : 3;
 		sourceDirectoryPath = properties.getProperty("directory");
 		domainDirectory = new HashMap<>();
@@ -62,6 +67,7 @@ public class Server {
 		for (String domain : domains) {
 			domainDirectory.put(domain.split(":")[0], domain.split(":")[1]);
 		}
+		listingDirectory = Boolean.parseBoolean(properties.getProperty("listingDirectory", "false"));
 	}
 
 	public String getSourceDirectoryPath() {
@@ -71,6 +77,10 @@ public class Server {
 	// Renvoie le dossier correspondant au domaine en paramètre
 	public String getDomainDirectory(String domain) {
 		return domainDirectory.get(domain);
+	}
+	
+	public boolean getListingDirectory() {
+		return this.listingDirectory;
 	}
 
 }

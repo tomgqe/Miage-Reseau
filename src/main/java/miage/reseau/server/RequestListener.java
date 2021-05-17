@@ -24,7 +24,7 @@ public class RequestListener implements Runnable {
 	public void run() {
 		try {
 			Request req = new Request(clientSocket, this.server);
-			Response res = new Response(req);
+			Response res = new Response(req, server.getListingDirectory());
 			res.write(clientSocket.getOutputStream());
 			clientSocket.close();
 		} catch (Exception e) {

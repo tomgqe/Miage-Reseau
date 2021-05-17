@@ -20,6 +20,7 @@ public class Request {
 
 	// contenu de la premiere ligne de la requete
 	private String method;
+	private String url;
 	private String uri;
 	private String version;
 
@@ -46,10 +47,14 @@ public class Request {
 		}
 		String directory = server.getSourceDirectoryPath() + '/' + server.getDomainDirectory(host);
 		// Redirection sur index.html en cas d'absence de fichier cible
-		if (uri.equals("/")) {
+		// et si le listing est desactivé
+		if (uri.equals("/") && !server.getListingDirectory()) {
 			LOG.info("Redirigée vers index.html");
 			uri = "/index.html";
 		}
+		//si url contient juste / on la remplace par un blanc
+		// pour aider à la réalisation du listing
+		url = url.equals("/") ? "" : url;
 		// conversion de l'url de la requete en un chemin vers le fichier cible
 		this.uri = directory + uri;
 	}
@@ -58,7 +63,8 @@ public class Request {
 	private void parseRequestFirstLine(String str) {
 		String[] requestSplit = str.split("\\s+");
 		method = requestSplit[0];
-		uri = requestSplit[1];
+		url = requestSplit[1];
+		uri = url;
 		version = requestSplit[2];
 	}
 
@@ -83,6 +89,14 @@ public class Request {
 
 	public String getUri() {
 		return uri;
+	}
+	
+	public String getUrl() {
+		return url;
+	}
+	
+	public String getFullUrl() {
+		return host+url;
 	}
 
 	public String getVersion() {

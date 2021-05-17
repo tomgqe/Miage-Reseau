@@ -4,15 +4,16 @@ Le projet de Réseau de la MIAGE
 ## Fonctionnalités
 Le projet est un serveur web from scratch. 
 Les fonctionnalité présentes sont :
-- Traitement des requêtes GET 
+- Traitement des requêtes GET (si l'url vaut "/" on cherche index.html)
 - Gestion des statuts courants
 - Gestion multisite
 - Gestion de plusieurs connexions en parallèle (avec paramétrage du nombre maximum)
 - Affichage de log sur stdout : ip de l'appelant + requête
 - Protection de ressource par une authentification basique
+- Gestion du listing des répertoires (paramétrage dans la config).
+
 
 ### Fonctionnalité prévues
-- Gestion du listing des répertoires (paramétrage dans la config).
 
 ## Généralités
 
@@ -34,11 +35,15 @@ Si vous souhaitez recharger le projet maven : `mvn clean install`.
 ### Configurer le serveur
 
 Le fichier config.properties se trouve dans le dossier bindist/bin
+(ou à la racine du projet pour une utilisation dans un IDE)
 
 Il permet le paramétrage du :
 - port écouté par le serveur : port
-- chemin absolu vers le dossier qui contient les ressources : directory
-- lien entre noms de domaines et dossiers de ressources : domains
+- le nombre de Threads d'écoute maximum en simulatanné
+- chemin absolu vers le dossier qui contient les ressources : directory (pas de lancement si non renseigné)
+- lien entre noms de domaines et dossiers de ressources : domains (pas de lancement si non renseigné)
+- l'activation ou non du listing de repertoire : listingDirectory
+
 
 			exemple : domains = verti.att:verti
 	

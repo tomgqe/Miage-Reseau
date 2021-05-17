@@ -31,18 +31,23 @@ public class Response {
 
 	// construction de la reponse :
 	// un cas par méthode HTTP gérée
-	public Response(Request req) throws IOException {
+	public Response(Request req, boolean listingDirectory) throws IOException {
 
 		switch (req.getMethod()) {
 		case "GET":
 			// On recherche le fichier cible de la requete
+			// si c'est un dossier et que le listing est activé on le gère
 			// si trouvé et authorisé on le retourne avec les headers adéquats
 			// si pas authorisé 403 Forbidden
 			// si non trouvé on retourne un Statut 404
 			// si exception : 400 bad request
 			try {
 				File file = new File(req.getUri());
-				if (file.exists()) {
+				if (file.isDirectory() && listingDirectory) {
+					if (checkAuthorization(req)) {
+						listingDirectory(file, req.getFullUrl());
+					}
+				} else if (file.exists()) {
 					if (checkAuthorization(req)) {
 						fillHeaders(Status._200);
 						setContentType(req.getUri(), headers);
@@ -65,6 +70,22 @@ public class Response {
 			fillHeaders(Status._501);
 			fillResponse(Status._501.toString());
 		}
+	}
+
+	private void listingDirectory(File folder, String url) {
+		String pathString;
+		String html = "<ul>";
+		html += "<li><a href=\"http://" + url.replace("/"+folder.getName(), "") + "\">.</a></li>";
+		for (File file : folder.listFiles()) {
+			
+			html += "<li><a href=\"http://" + url+"/"+file.getName() + "\">"
+                    + file.getName() + "</a></li>";
+		}
+		html += "</ul>";
+		fillHeaders(Status._200);
+		setContentType(ContentType.HTML, headers);
+		fillResponse(html.getBytes());
+
 	}
 
 	// parcours tous les dossiers de l'uri à la recherche de .htpasswd
@@ -187,6 +208,16 @@ public class Response {
 			// L'Enum Content-Type est en majuscule pour eviter les probleme de casse donc
 			// on passe l'extension en majuscule aussi
 			list.add(ContentType.valueOf(ext.toUpperCase()).toString());
+		} catch (Exception e) {
+			LOG.severe("ContentType non géré : " + e);
+		}
+	}
+	
+	private void setContentType(ContentType contentType, List<String> list) {
+		try {
+			// L'Enum Content-Type est en majuscule pour eviter les probleme de casse donc
+			// on passe l'extension en majuscule aussi
+			list.add(contentType.toString());
 		} catch (Exception e) {
 			LOG.severe("ContentType non géré : " + e);
 		}
